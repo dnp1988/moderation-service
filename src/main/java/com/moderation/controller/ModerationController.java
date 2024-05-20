@@ -2,8 +2,8 @@ package com.moderation.controller;
 
 import com.moderation.api.ApiConstants;
 import com.moderation.api.ReviseMessagesResponse;
-import com.moderation.domain.repository.ResultFileRepository;
 import com.moderation.domain.usecase.ProcessMessages;
+import com.moderation.domain.usecase.RetrieveResults;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.codec.StringDecoder;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
 import java.util.Collections;
 
 @RestController
@@ -27,12 +28,12 @@ import java.util.Collections;
 public class ModerationController {
 
     private ProcessMessages processMessages;
-    private ResultFileRepository resultFileRepository;
+    private RetrieveResults retrieveResults;
     private StringDecoder stringDecoder;
 
-    public ModerationController(ProcessMessages processMessages, ResultFileRepository resultFileRepository) {
+    public ModerationController(ProcessMessages processMessages, RetrieveResults retrieveResults) {
         this.processMessages = processMessages;
-        this.resultFileRepository = resultFileRepository;
+        this.retrieveResults = retrieveResults;
         this.stringDecoder = StringDecoder.textPlainOnly();
     }
 
@@ -53,7 +54,7 @@ public class ModerationController {
     @GetMapping(value = ApiConstants.RESULTS_ENDPOINT_PATH + "/{id}",
             produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<Flux<DataBuffer>> retrieveResultsFile(@PathVariable("id") String resultsId) {
-        Flux<DataBuffer> file = resultFileRepository.retrieveResults(resultsId);
+        Flux<DataBuffer> file = retrieveResults.retrieve(resultsId);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, String.format("attachment; filename=\"%s\"", resultsId))
                 .contentType(MediaType.APPLICATION_OCTET_STREAM).body(file);

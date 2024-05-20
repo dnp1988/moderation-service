@@ -2,6 +2,7 @@ package com.moderation.integration;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.moderation.adapter.AdapterConstants;
 import com.moderation.adapter.entity.ScoringRequest;
 import com.moderation.adapter.entity.ScoringResponse;
 import com.moderation.adapter.entity.TranslationRequest;
@@ -13,7 +14,6 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import com.moderation.adapter.AdapterConstants;
 
 public class MockWebServerDispatcher extends Dispatcher {
 

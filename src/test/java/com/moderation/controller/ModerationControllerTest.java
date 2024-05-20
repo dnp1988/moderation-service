@@ -3,8 +3,8 @@ package com.moderation.controller;
 import com.moderation.api.ApiConstants;
 import com.moderation.api.ReviseMessagesResponse;
 import com.moderation.domain.usecase.ProcessMessages;
+import com.moderation.domain.usecase.RetrieveResults;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -32,6 +32,9 @@ public class ModerationControllerTest {
 
     @MockBean
     private ProcessMessages processMessages;
+
+    @MockBean
+    private RetrieveResults retrieveResults;
 
     @Test
     public void testPostModerationsReviseOk() {
