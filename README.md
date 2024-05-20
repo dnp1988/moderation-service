@@ -20,7 +20,8 @@ The response is a json containing the ID under which the results are saved.
 
 #### Request example:
 ```curl
-curl --location 'http://localhost:8080/api/moderation/messages' --form 'file=@"/{path_to_local_file}/input.csv"' -k
+curl --location 'http://localhost:8080/api/moderation/messages' \
+     --form 'file="{path_to_local_file}/input.csv"' -k
 ```
 
 ### GET /api/moderation/results/{id}
