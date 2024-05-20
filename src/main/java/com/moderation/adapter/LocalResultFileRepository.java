@@ -20,6 +20,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Collections;
+import java.util.NoSuchElementException;
 
 @Repository
 public class LocalResultFileRepository implements ResultFileRepository {
@@ -28,6 +29,7 @@ public class LocalResultFileRepository implements ResultFileRepository {
     private static final String DIRECTORY_PREFIX = "moderation";
     private static final String VALUE_SEPARATOR = ",";
     private static final String CSV_EXTENSION = ".csv";
+    private static final int BUFFER_SIZE = 4096;
 
     private Path baseLocalDirectory;
     private DefaultDataBufferFactory bufferFactory;
@@ -84,6 +86,11 @@ public class LocalResultFileRepository implements ResultFileRepository {
         Path resultPath = baseLocalDirectory.resolve(resultsId + CSV_EXTENSION);
         LOGGER.info("Retrieving Result File with path ({})", resultPath.toAbsolutePath());
 
-        return DataBufferUtils.read(resultPath, new DefaultDataBufferFactory(), 4096);
+        if(!resultPath.toFile().exists()) {
+            LOGGER.warn("Result File with path ({}) NOT FOUND", resultPath.toAbsolutePath());
+            return Flux.error(new NoSuchElementException("Result File not found"));
+        }
+
+        return DataBufferUtils.read(resultPath, new DefaultDataBufferFactory(), BUFFER_SIZE);
     }
 }

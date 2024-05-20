@@ -26,11 +26,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.time.Duration;
+import java.util.HashSet;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@AutoConfigureWebTestClient
+@AutoConfigureWebTestClient(timeout = "36000")
 @SpringBootTest(properties = {
         "spring.main.web-application-type=reactive",
         "moderation.clients.translation.baseUrl=http://localhost:8088",
@@ -76,7 +77,7 @@ public class ModerationIntegrationTest {
                 .expectStatus().isOk()
                 .returnResult(ReviseMessagesResponse.class);
 
-        ReviseMessagesResponse messagesResponse = messagesResponseFlux.getResponseBody().single().block(Duration.ZERO);
+        ReviseMessagesResponse messagesResponse = messagesResponseFlux.getResponseBody().single().block();
 
         FluxExchangeResult<DataBuffer> resultsResponseFlux = webClient.get()
                 .uri(ApiConstants.RESULTS_ENDPOINT_FULL_PATH + "/" + messagesResponse.getResultsId())
@@ -93,7 +94,9 @@ public class ModerationIntegrationTest {
 
         try(InputStream expected = new ClassPathResource(OUTPUT_CSV).getInputStream();
             InputStream result = new FileInputStream(resultsFilePath.toFile())) {
-            assertTrue(IOUtils.contentEquals(expected, result));
+
+            assertEquals(new HashSet<>(IOUtils.readLines(expected)),
+                    new HashSet<>(IOUtils.readLines(result)));
         }
     }
 

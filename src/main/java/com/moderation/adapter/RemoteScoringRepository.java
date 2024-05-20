@@ -5,32 +5,36 @@ import com.moderation.adapter.entity.ScoringRequest;
 import com.moderation.adapter.entity.ScoringResponse;
 import com.moderation.domain.repository.ScoringRepository;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+@Profile("!mocked")
 @Repository
-public class RemoteScoringRepository implements ScoringRepository {
+public class RemoteScoringRepository extends AbstractCachedRepository<ScoringResponse, Double> implements ScoringRepository {
 
     private WebClient webClient;
-    private Cache<String, ScoringResponse> cache;
 
     public RemoteScoringRepository(@Qualifier("scoringClient") WebClient webClient,
                                    @Qualifier("scoringCache") Cache<String, ScoringResponse> cache) {
+        super(cache);
         this.webClient = webClient;
-        this.cache = cache;
     }
 
     @Override
     public Mono<Double> scoreMessage(String messageText) {
-        return Mono.justOrEmpty(cache.getIfPresent(messageText))
-                .switchIfEmpty(Mono.defer(() -> requestScoringMessage(messageText)
-                        .doOnNext(response -> cache.put(messageText, response))))
-                .map(ScoringResponse::getScoringValue);
+        return getCachedValueOrMakeRequest(messageText);
     }
 
-    public Mono<ScoringResponse> requestScoringMessage(String messageText) {
+    @Override
+    protected Double mapResponseToValue(ScoringResponse response) {
+        return response.getScoringValue();
+    }
+
+    @Override
+    protected Mono<ScoringResponse> makeRequest(String messageText) {
         return webClient.post()
                 .uri(AdapterConstants.SCORING_PATH)
                 .contentType(MediaType.APPLICATION_JSON)

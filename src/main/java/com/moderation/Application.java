@@ -7,7 +7,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 /**
  * Main Spring Boot Class Spring Application.
  */
-@EnableScheduling
 @SpringBootApplication
 public class Application {
 

@@ -7,6 +7,7 @@ import com.moderation.adapter.entity.ScoringRequest;
 import com.moderation.adapter.entity.ScoringResponse;
 import com.moderation.adapter.entity.TranslationRequest;
 import com.moderation.adapter.entity.TranslationResponse;
+import com.moderation.adapter.utils.RemoteMockUtils;
 import okhttp3.mockwebserver.Dispatcher;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.RecordedRequest;
@@ -15,9 +16,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
+import java.util.concurrent.TimeUnit;
+
 public class MockWebServerDispatcher extends Dispatcher {
 
-    public static final String TRANSLATED_PREFIX = "translated ";
+    private static final String TRANSLATED_PREFIX = "translated ";
     private ObjectMapper mapper = new ObjectMapper();
 
     @NotNull
@@ -41,21 +44,26 @@ public class MockWebServerDispatcher extends Dispatcher {
     private MockResponse createScoringMockResponse(RecordedRequest recordedRequest) {
         ScoringRequest request = fromJsonString(recordedRequest.getBody().readUtf8(), ScoringRequest.class);
 
-        Double score = 1.0 * Math.abs(request.getText().hashCode()) / Integer.MAX_VALUE;
+        Double score = RemoteMockUtils.getScoringValue(request.getText());
 
         return new MockResponse()
                 .setResponseCode(HttpStatus.OK.value())
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setBody(toJsonString(new ScoringResponse(score)));
+                .setBody(toJsonString(new ScoringResponse(score)))
+                .setBodyDelay(RemoteMockUtils.getRandomResponseDelayInMillis(), TimeUnit.MILLISECONDS);
     }
 
     @NotNull
     private MockResponse createTranslationMockResponse(RecordedRequest recordedRequest) {
         TranslationRequest request = fromJsonString(recordedRequest.getBody().readUtf8(), TranslationRequest.class);
+
+        String translatedMessage = RemoteMockUtils.getTranslatedMessage(request.getText());
+
         return new MockResponse()
                 .setResponseCode(HttpStatus.OK.value())
                 .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setBody(toJsonString(new TranslationResponse(TRANSLATED_PREFIX + request.getText())));
+                .setBody(toJsonString(new TranslationResponse(translatedMessage)))
+                .setBodyDelay(RemoteMockUtils.getRandomResponseDelayInMillis(), TimeUnit.MILLISECONDS);
     }
 
     private String toJsonString(Object value) {
