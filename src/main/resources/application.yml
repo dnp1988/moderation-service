@@ -1,0 +1,13 @@
+spring.application.name: moderation-service
+
+server.error.include-message: on_param
+server.port: 8080
+
+# SERVICE
+##########
+moderation:
+  clients:
+    translation:
+      baseUrl: http://localhost:8087 # base URL of the Translation Service
+    scoring:
+      baseUrl: http://localhost:8086 # base URL of the Scoring Service
