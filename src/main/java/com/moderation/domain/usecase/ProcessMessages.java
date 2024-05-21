@@ -3,15 +3,12 @@ package com.moderation.domain.usecase;
 import com.google.common.base.VerifyException;
 import com.moderation.domain.entity.SingleMessageModerationResult;
 import com.moderation.domain.entity.UserModerationResult;
-import com.moderation.domain.repository.ResultFileRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
@@ -21,18 +18,15 @@ public class ProcessMessages {
 
     private ParseMessageInput parseMessageInput;
     private ProcessSingleMessage processSingleMessage;
-    private ResultFileRepository resultFileRepository;
 
     public ProcessMessages(ParseMessageInput parseMessageInput,
-                           ProcessSingleMessage processSingleMessage,
-                           ResultFileRepository resultFileRepository) {
+                           ProcessSingleMessage processSingleMessage) {
         this.parseMessageInput = parseMessageInput;
         this.processSingleMessage = processSingleMessage;
-        this.resultFileRepository = resultFileRepository;
     }
 
-    public Mono<String> process(Flux<String> messagesFlux) {
-        Flux<UserModerationResult> userResultsFlux = messagesFlux
+    public Flux<UserModerationResult> process(Flux<String> messagesFlux) {
+        return messagesFlux
 
                 .map(parseMessageInput::parse)
                 .onErrorContinue(VerifyException.class,
@@ -45,12 +39,6 @@ public class ProcessMessages {
                         Collectors.collectingAndThen(Collectors.toList(), this::createUserModerationResult)))
                 .flatMapIterable(map -> map.values())
                 .doOnNext(userMessageResult -> LOGGER.debug("user message result: {}", userMessageResult));
-
-        return resultFileRepository.saveResults(createResultsId(), userResultsFlux);
-    }
-
-    private String createResultsId() {
-        return UUID.randomUUID().toString();
     }
 
     private UserModerationResult createUserModerationResult(List<SingleMessageModerationResult> resultList) {

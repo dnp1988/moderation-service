@@ -4,6 +4,7 @@ import com.moderation.api.ApiConstants;
 import com.moderation.api.ReviseMessagesResponse;
 import com.moderation.domain.usecase.ProcessMessages;
 import com.moderation.domain.usecase.RetrieveResults;
+import com.moderation.domain.usecase.ReviseMessagesAndSaveResults;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.codec.StringDecoder;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -31,12 +32,12 @@ import java.util.NoSuchElementException;
 @RequestMapping(ApiConstants.MODERATION_CONTROLLER_PATH)
 public class ModerationController {
 
-    private ProcessMessages processMessages;
+    private ReviseMessagesAndSaveResults reviseMessagesAndSaveResults;
     private RetrieveResults retrieveResults;
     private StringDecoder stringDecoder;
 
-    public ModerationController(ProcessMessages processMessages, RetrieveResults retrieveResults) {
-        this.processMessages = processMessages;
+    public ModerationController(ReviseMessagesAndSaveResults reviseMessagesAndSaveResults, RetrieveResults retrieveResults) {
+        this.reviseMessagesAndSaveResults = reviseMessagesAndSaveResults;
         this.retrieveResults = retrieveResults;
         this.stringDecoder = StringDecoder.textPlainOnly();
     }
@@ -52,7 +53,7 @@ public class ModerationController {
                 Collections.emptyMap()
         ));
         return ResponseEntity.ok()
-                .body(processMessages.process(fileLinesFlux).map(ReviseMessagesResponse::new));
+                .body(reviseMessagesAndSaveResults.revise(fileLinesFlux).map(ReviseMessagesResponse::new));
     }
 
     @GetMapping(value = ApiConstants.RESULTS_ENDPOINT_PATH + "/{id}",

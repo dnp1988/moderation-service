@@ -11,12 +11,14 @@ public class ParseMessageInput {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ParseMessageInput.class);
 
+    private static final String VALUE_SEPARATOR = ",";
+
     public MessageInput parse(String messageInputLine) {
         LOGGER.debug("Parsing messageInputLine ({})", messageInputLine);
 
         Verify.verifyNotNull(messageInputLine, "messageInputLine cannot be null");
 
-        String[] values = messageInputLine.split(",");
+        String[] values = messageInputLine.split(VALUE_SEPARATOR);
 
         Verify.verify(values.length == 2, "messageInputLine (%s) is malformed", messageInputLine);
 
